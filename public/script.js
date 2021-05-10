@@ -13,8 +13,9 @@ $( document ).ready((() => {
   getData(); // TODO: Implement getData Method
   const input = $('#hft-shoutbox-form-input-name')
   const textarea = $('#hft-shoutbox-form-textarea')
+  const form = $('#hft-shoutbox-form')
 
-  $('#hft-shoutbox-form').on('keyup', (event) => {
+  form.on('keyup', (event) => {
     if (formElementIsValid(input.val(), 3) && formElementIsValid(textarea.val(), 10)) {
       toggleAlertBox(false)
       toggleSubmit(false)
@@ -24,8 +25,13 @@ $( document ).ready((() => {
     }
   })
 
-  // TODO: Handle submit
-}))
+
+  form.on('submit', async (event) => {
+    event.preventDefault();
+    await saveData(input.val(), textarea.val());
+    await getData();
+  });
+}));
 
 function formElementIsValid(element, minLength) {
   return element.length >= minLength
@@ -48,10 +54,32 @@ function toggleSubmit(disable) {
 
 async function getData() {
   // TODO: Implement
+  const tableBody = $('.table > tbody');
+  tableBody.empty();
+  const response = await fetch('/api/shouts', {
+    method: 'get',
+    headers: {'Content-Type': 'application/json'},
+  });
+
+  const json = await response.json();
+  json.forEach(elem => {
+    tableBody.append(`<tr><td>${elem.id}</td><td>${elem.username}</td><td>${elem.message}</td></tr>`)
+  })
 }
 
 async function saveData(username, message) {
-  // TODO: Implement
+    try {
+      await fetch('/api/shouts', {
+        method: 'post',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          username, 
+          message,
+        }),
+      }); 
+    } catch (e) {
+      console.error(e);
+    }
 }
 
 // THIS IS FOR AUTOMATED TESTING
